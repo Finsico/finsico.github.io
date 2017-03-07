@@ -3,14 +3,18 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Finsico Site</title>
+  <title>如何在解析器中正确的处理编码问题 | Finsico Site</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Finsico Site">
-<meta property="og:url" content="http://finsico.com/index.html">
+  <meta name="description" content="解析器（Parser）的工作通常是对一段文本进行结构化输出的操作。比如编程语言的语法解析器，抽象语法树（AST）、SQL、Mysql Protocol 等等。 对于文本解析器（SQL）而言，通常是根据Token获取相应的Message。既然是文本，自然就涉及到不同的文本编码，而Token一般是固定的标记字符，一般是ASCII 字符（当然也可以某种编码格式下的Unicode字符）。 那么，就可能在不">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何在解析器中正确的处理编码问题">
+<meta property="og:url" content="http://finsico.com/2017/03/07/parser-charset-problem/index.html">
 <meta property="og:site_name" content="Finsico Site">
+<meta property="og:description" content="解析器（Parser）的工作通常是对一段文本进行结构化输出的操作。比如编程语言的语法解析器，抽象语法树（AST）、SQL、Mysql Protocol 等等。 对于文本解析器（SQL）而言，通常是根据Token获取相应的Message。既然是文本，自然就涉及到不同的文本编码，而Token一般是固定的标记字符，一般是ASCII 字符（当然也可以某种编码格式下的Unicode字符）。 那么，就可能在不">
+<meta property="og:updated_time" content="2017-03-07T04:03:10.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Finsico Site">
+<meta name="twitter:title" content="如何在解析器中正确的处理编码问题">
+<meta name="twitter:description" content="解析器（Parser）的工作通常是对一段文本进行结构化输出的操作。比如编程语言的语法解析器，抽象语法树（AST）、SQL、Mysql Protocol 等等。 对于文本解析器（SQL）而言，通常是根据Token获取相应的Message。既然是文本，自然就涉及到不同的文本编码，而Token一般是固定的标记字符，一般是ASCII 字符（当然也可以某种编码格式下的Unicode字符）。 那么，就可能在不">
   
     <link rel="alternate" href="/atom.xml" title="Finsico Site" type="application/atom+xml">
   
@@ -63,9 +67,7 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main">
-  
-    <article id="post-parser-charset-problem" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-parser-charset-problem" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2017/03/07/parser-charset-problem/" class="article-date">
   <time datetime="2017-03-07T03:55:53.000Z" itemprop="datePublished">2017-03-07</time>
@@ -78,8 +80,8 @@
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/03/07/parser-charset-problem/">如何在解析器中正确的处理编码问题</a>
+    <h1 class="article-title" itemprop="name">
+      如何在解析器中正确的处理编码问题
     </h1>
   
 
@@ -111,10 +113,9 @@
     </footer>
   </div>
   
-</article>
-
-
+    
   
+</article>
 
 </section>
         
