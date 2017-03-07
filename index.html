@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Finsico Site</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Finsico Site">
+<meta property="og:url" content="http://finsico.com/index.html">
+<meta property="og:site_name" content="Finsico Site">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Finsico Site">
+  
+    <link rel="alternate" href="/atom.xml" title="Finsico Site" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Finsico Site</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Rust &amp; Distribunted System &amp; Database</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://finsico.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-parser-charset-problem" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/03/07/parser-charset-problem/" class="article-date">
+  <time datetime="2017-03-07T02:55:53.000Z" itemprop="datePublished">2017-03-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/03/07/parser-charset-problem/">如何在实现解析器的过程中正确的处理编码问题</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>解析器（Parser） 是一种将字节流解析成为结构化输出的操作工具。比如编程语言的语法解析器(C语言)、DSL的解析器（SQL，ZenCoding）等。</p>
+<p>对于一种文本规则（协议）而言，一般的都是分为标记（Token）与信息（Message）两部分。</p>
+<p>对于C语言的结构体</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">struct</span> MyStruct &#123;</div><div class="line">	<span class="keyword">int</span> n;</div><div class="line">	<span class="keyword">float</span> f;</div><div class="line">	<span class="keyword">const</span> <span class="keyword">char</span>* str;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>从解析器的角度来看，我们可以如下定义：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">//结构解析器</div><div class="line">define parse_struct :</div><div class="line"></div><div class="line">	Token(<span class="string">"struct"</span>) + Message(struct_ame:str) + Token(<span class="string">"&#123;"</span>)</div><div class="line"></div><div class="line">	Message(field_definition:parser) </div><div class="line"></div><div class="line">	...</div><div class="line"></div><div class="line">	+ Token(<span class="string">"&#125;"</span>)</div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line">//字段定义解析器</div><div class="line">define field_definition :</div><div class="line"></div><div class="line">	MayBe(Message(modifier:parser)) +  Message(<span class="built_in">type</span>:parser) </div><div class="line">	</div><div class="line">	+ Message(field_name:str) + Token(<span class="string">"&#125;"</span>)</div><div class="line"></div><div class="line">...</div><div class="line"></div><div class="line">//变量修饰符解析器</div><div class="line">define modifier :</div><div class="line"></div><div class="line">	Token(<span class="string">"const"</span> | <span class="string">"static"</span>)</div><div class="line"></div><div class="line"></div><div class="line">....</div></pre></td></tr></table></figure>
+<p>当我们在处理文本内容的时候，自然而然的就会涉及到<code>字符编码</code>的问题。Token一般是某种字符编码下的固定字符（比如最常用的是ASCII），那么如果没有正确的处理编码，则会在不同的编码环境中造成理解歧义，从而引起解析发生不可预期的错误。</p>
+<p> 比如 <code>&quot;0001101100010010&quot;</code> 这个字节序，在UTF16中，可以理解为<code>&amp;#6930</code>，然后在ASCII环境中则可以理解为<code>&quot;00011011&quot;</code>,  <code>&quot;00010010&quot;</code>  这两个字符，而恰巧这两个字符又是解析器所需的关键字,那么这样的歧义就造成了解析器可能无法正常工作。</p>
+<h4 id="常用解决办法"><a href="#常用解决办法" class="headerlink" title="常用解决办法"></a>常用解决办法</h4><p>在不同的解析器实现中，一般会使用以下的方法进行解决。</p>
+<h5 id="单一编码"><a href="#单一编码" class="headerlink" title="单一编码"></a>单一编码</h5><p>我们可以从协议层规定支持的编码集，对于非约定的字符集不保证工作正确。竟然不同的编码环境会因为歧义而造成解析故障，那么我们在协议定义的时候就明确编码。比如尽管UTF16与ASCII编码不兼容，但是如果我们明确约定编码集为utf16，对于ASCII字符，我们采用UTF16中的双字节作为Token，那么也不会出现故障。</p>
+<h4 id="ASCII兼容的字符编码"><a href="#ASCII兼容的字符编码" class="headerlink" title="ASCII兼容的字符编码"></a>ASCII兼容的字符编码</h4><p>如果Token是ASCII编码的，那么选择一种ASCII兼容的编码集，避免造成歧义。同样是Unicode，UTF8就是可以向下兼容ASCII编码的，因为UTF8中，每个字节的最高位都置为1（127+），而低于127的字符编码保持与ASCII一致，完成兼容处理。</p>
+<h4 id="预先声明字符编码"><a href="#预先声明字符编码" class="headerlink" title="预先声明字符编码"></a>预先声明字符编码</h4><p> 文本的本质是一段字节序列，如果应用必须要支持多种编码格式，那么可以采用预声明字符集的方法进行解析。比如在SQL的字符串定义中：<br>    <code>_charset_name&#39;strings&#39;</code>的方式预先指定一个字符集，在后续的解析中使用声明的字符集进行解析，从而避免歧义。这样，就可以在一段文本中使用多重字符编码。</p>
+<p>我们可以设计以下多重编码文本传输协议：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">_CHARSET<span class="string">'String Data'</span> </div><div class="line"></div><div class="line">Parser : Token(_)+Message(CHARSET)+Token(<span class="string">')+Message(String Data) + Token('</span>)</div><div class="line"></div><div class="line">String Data 是一段[u8]序列，最终将这段文本解析为string的时候，可以CHARSET中指定的编码进行解析。</div><div class="line"></div><div class="line">example:</div><div class="line">_utf8<span class="string">'UTF8'</span> 的意义就是使用UTF8编码解析字节序列<span class="string">"UTF8"</span>;</div></pre></td></tr></table></figure>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>在处理字符前，我们总是需要通过某种方法去确定我们应该使用何种字符编码作为字节流解析的基础。这也就要求，我们在设计一个协议的时候，不能出现丢失字符编码信息的情况。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://finsico.com/2017/03/07/parser-charset-problem/" data-id="cizz77x2300002fuj7inlmbnj" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Parser-文本处理-nom/">Parser,文本处理,nom</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/Parser-文本处理-nom/">Parser,文本处理,nom</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/Parser-文本处理-nom/" style="font-size: 10px;">Parser,文本处理,nom</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/03/">三月 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/03/07/parser-charset-problem/">如何在实现解析器的过程中正确的处理编码问题</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 finsico<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
